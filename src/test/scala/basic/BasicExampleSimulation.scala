@@ -11,7 +11,10 @@ import assertions._
 class BasicExampleSimulation extends Simulation {
 
         val httpProtocol = http
-                .baseURL("http://www.healthkart.com")
+                .baseURL("http://staging.healthkart.com:9090/hk/")
+                .extraInfoExtractor((status:Status, session:Session, request:Request, response: Response) => {
+                 List[String](request.getRawUrl())
+                                                   })
                 .acceptCharsetHeader("ISO-8859-1,utf-8;q=0.7,*;q=0.7")
                 .acceptHeader("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                 .acceptEncodingHeader("gzip, deflate")
@@ -39,7 +42,7 @@ class BasicExampleSimulation extends Simulation {
 				        val scn = scenario("Scenario name")
                 .group("Login") {
                         exec(
-                                http("request_1")
+                                http("HK Homepage")
                                         .get("/")
                                         .headers(headers_1)
                                         .check(status.is(200))
@@ -48,46 +51,80 @@ class BasicExampleSimulation extends Simulation {
                                 .exec(
                                       http("submit login")
                                      .post("/core/auth/Login.action")
-                                     .headers(headers_2)
-                                     .param("""loginName""", "nitin.wadhawan@healthkart.com")
-                                     .param("""password""", "123456"))
+                                     .param("""email""", """nitin.wadhawan@healthkart.com""")
+                                     .param("""password""", """123456""")
+                                     .param("""login""", """Login""")
+                                     .check(status.is(302))
+                                     .check(regex("""Login using an existing account""").notExists)
+                                     .headers(headers_2))                                     
                                      .pause(2,3)
-                       
+                                  .exec(
+                                      http("navigate to product page")
+                                     .post("/product/muscleblaze-amino-2288/NUT3179?productReferrerId=11")
+                                     .check(status.is(200))
+                                     .headers(headers_2))                                     
+                                     .pause(2,3)   
+                                 .exec(
+                                      http("Add to Cart")
+                                     .post("/core/cart/AddToCart.action")
+                                     .param("""addToCart""", """Place Order""")
+                                     .param("""productVariantList[0]""", """NUT3179-01""")
+                                     .param("""productVariantList[0].qty""", """1""")
+                                     .param("""productVariantList[0].selected""", """true""")
+                                     .param("""productVariantList[1]""", """NUT3166-02""")
+                                     .param("""productVariantList[1].qty""", """2""")
+                                     .param("""productVariantList[1].selected""", """true""")
+                                     .check(status.is(200))
+                                     .headers(headers_1))
+                                     .pause(2,3)
+                                 .exec(
+                                      http("Cart page")
+                                     .get("/core/cart/AddToCart.action")
+                                     .check(status.is(200))
+                                     .headers(headers_1))
+                                     .pause(2,3) 
+                                  .exec(
+                                      http("Address page")
+                                     .get("/core/user/SelectAddress.action")
+                                     .check(status.is(200))
+                                     .headers(headers_1))
+                                     .pause(2,3) 
+                                  .exec(
+                                      http("Select Address")
+                                     .post("/core/user/SelectAddress.action")
+                                     .param("""selectedAddress""", """557074""")
+                                     .check(status.is(200))
+                                     .headers(headers_2))                                     
+                                     .pause(2,3)    
+                                  .exec(
+                                      http("Select Address")
+                                     .get("/core/payment/PaymentMode.action")
+                                     .check(status.is(200))
+                                     .headers(headers_2))                                     
+                                     .pause(2,3)
+                                  .exec(
+                                      http("Order summary")
+                                     .get("/core/order/OrderSummary.action")
+                                     .check(css(".title>form>input", "value").saveAs("orderId"))
+                                     .headers(headers_2))                                     
+                                     .pause(2,3)   
+                                  .exec(
+                                      http("Confirm Payment")
+                                     .post("/core/payment/CodPaymentReceive.action")
+                                     .param("""order""", """${orderId}""")
+                                     .param("""codContactName""", """Nitin Wadhawan""")
+                                     .param("""codContactPhone""", """9910444067""")
+                                     .param("""pre""", """PLACE ORDER""")
+                                     .check(status.is(200))
+                                     .headers(headers_1))
+                                     .pause(2,3)   
+                                     
                         }.exec(session => {
                           println(session)
                           session
-                        })				
-				 .pause(0 milliseconds, 100 milliseconds)
-                .repeat(1) {
-                                .exec(
-                                        http("request_5")
-                                                .get("/product/muscleblaze-amino-2288/NUT3179?productReferrerId=11")
-                                                .headers(headers_1))
-                                .pause(100 milliseconds, 200 milliseconds)
-                                .exec(
-                                        http("Add to cart")
-                                               .post("/core/cart/AddToCart.action")
-                                               .param("productVariantList[0]", "NUT3179-01")
-                                               .param("productVariantList[0].qty", "1")
-                                                .headers(headers_6))
-                                .pause(4, 5)
-                                .exec(
-                                        http("request_7")
-                                                .get("/product/dymatize-elite-mass/NUT922?productReferrerId=23&productPosition=1/2")
-                                                .headers(headers_1))
-                                .pause(100 milliseconds, 200 milliseconds)
-                                .exec(
-                                        http("request_8")
-                                                .get("/sports-nutrition/protein/casein-protein")
-                                                .headers(headers_6))
-                                .pause(6, 7)
-                }.exec(
-                        http("request_9")
-                                .get("/")
-                                .headers(headers_1)
-                                .check(status.is(200)))
-                .pause(0 milliseconds, 100 milliseconds)
-
+                        })	
+                        
+				
 
         setUp(scn.inject(ramp(1 users) over (1 seconds)))
                 .protocols(httpProtocol)
