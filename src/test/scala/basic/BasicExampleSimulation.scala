@@ -11,7 +11,7 @@ import assertions._
 class BasicExampleSimulation extends Simulation {
 
         val httpProtocol = http
-                .baseURL("http://staging.healthkart.com:9090/hk/")
+                .baseURL("http://192.168.1.53:8080")
                 .extraInfoExtractor((status:Status, session:Session, request:Request, response: Response) => {
                  List[String](request.getRawUrl())
                                                    })
@@ -47,12 +47,13 @@ class BasicExampleSimulation extends Simulation {
                                         .headers(headers_1)
                                         .check(status.is(200))
                                   )                                        
-                                .pause(10)             
+                                .pause(10)     
+                                .feed(csv("user_credentials.csv"))
                                 .exec(
                                       http("submit login")
                                      .post("/core/auth/Login.action")
-                                     .param("""email""", """nitin.wadhawan@healthkart.com""")
-                                     .param("""password""", """123456""")
+                                     .param("""email""", "${username}")
+                                     .param("""password""", "${password}")
                                      .param("""login""", """Login""")
                                      .check(status.is(302))
                                      .check(regex("""Login using an existing account""").notExists)
@@ -68,12 +69,12 @@ class BasicExampleSimulation extends Simulation {
                                       http("Add to Cart")
                                      .post("/core/cart/AddToCart.action")
                                      .param("""addToCart""", """Place Order""")
-                                     .param("""productVariantList[0]""", """NUT3179-01""")
+                                     .param("""productVariantList[0]""", """HNUT235-01""")
                                      .param("""productVariantList[0].qty""", """1""")
                                      .param("""productVariantList[0].selected""", """true""")
-                                     .param("""productVariantList[1]""", """NUT3166-02""")
+                                     /*.param("""productVariantList[1]""", """DM033-01""")
                                      .param("""productVariantList[1].qty""", """2""")
-                                     .param("""productVariantList[1].selected""", """true""")
+                                     .param("""productVariantList[1].selected""", """true""")*/
                                      .check(status.is(200))
                                      .headers(headers_1))
                                      .pause(2,3)
@@ -92,22 +93,23 @@ class BasicExampleSimulation extends Simulation {
                                   .exec(
                                       http("Select Address")
                                      .post("/core/user/SelectAddress.action")
-                                     .param("""selectedAddress""", """557074""")
+                                     .param("""selectedAddress""", "${address}")
                                      .check(status.is(200))
                                      .headers(headers_2))                                     
                                      .pause(2,3)    
-                                  .exec(
-                                      http("Select Address")
+                                /*  .exec(
+                                      http("get Payment page)
                                      .get("/core/payment/PaymentMode.action")
                                      .check(status.is(200))
                                      .headers(headers_2))                                     
-                                     .pause(2,3)
+                                     .pause(2,3)*/
                                   .exec(
                                       http("Order summary")
                                      .get("/core/order/OrderSummary.action")
-                                     .check(css(".title>form>input", "value").saveAs("orderId"))
+                                     /*.check(css(".right_container>form>input","value").saveAs("orderId"))*/
+                                     .check(css(".title>form>input","value").saveAs("orderId"))
                                      .headers(headers_2))                                     
-                                     .pause(2,3)   
+                                     .pause(3,4)   
                                   .exec(
                                       http("Confirm Payment")
                                      .post("/core/payment/CodPaymentReceive.action")
@@ -115,7 +117,7 @@ class BasicExampleSimulation extends Simulation {
                                      .param("""codContactName""", """Nitin Wadhawan""")
                                      .param("""codContactPhone""", """9910444067""")
                                      .param("""pre""", """PLACE ORDER""")
-                                     .check(status.is(200))
+                                     .check(status.is(302))
                                      .headers(headers_1))
                                      .pause(2,3)   
                                      
@@ -126,7 +128,7 @@ class BasicExampleSimulation extends Simulation {
                         
 				
 
-        setUp(scn.inject(ramp(1 users) over (1 seconds)))
+        setUp(scn.inject(ramp(3 users) over (10 seconds)))
                 .protocols(httpProtocol)
 
 }
