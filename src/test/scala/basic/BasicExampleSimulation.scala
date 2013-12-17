@@ -89,6 +89,13 @@ class BasicExampleSimulation extends Simulation {
                                      .body(StringBody(addToCartJSON)).asJSON
                                      .check(status.is(200))
                                      .headers(headers_1))
+                                  .feed(csv("nitin.csv").random)    
+                                  .exec(
+                                      http("Add to Cart-2nd product")
+                                     .post("/api/cart/productVariant/add")
+                                     .body(StringBody(addToCartJSON)).asJSON
+                                     .check(status.is(200))
+                                     .headers(headers_1))   
                                  .exec(
                                       http("Cart page")
                                      .get("/core/cart/AddToCart.action")
