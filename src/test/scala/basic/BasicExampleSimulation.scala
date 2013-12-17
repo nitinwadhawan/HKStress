@@ -11,7 +11,7 @@ import assertions._
 class BasicExampleSimulation extends Simulation {
 
         val httpProtocol = http
-                .baseURL("http://stagnew.healthkart.com")
+                .baseURL("http://192.168.70.26:8787")
                 .extraInfoExtractor((status:Status, session:Session, request:Request, response: Response) => {
                 List[String](request.getRawUrl())                                                   })
                 .acceptCharsetHeader("ISO-8859-1,utf-8;q=0.7,*;q=0.7")
@@ -53,12 +53,12 @@ class BasicExampleSimulation extends Simulation {
                 "Keep-Alive" -> "115",
                 "X-Requested-With" -> "XMLHttpRequest")
         
-                val addToCartJSON="""{"oldVariantId": "NUT2140-01","qty": "1","variantId": "37833"}"""
+                val addToCartJSON="""{"oldVariantId": "SKOF12-01","qty": "1","variantId": "37833"}"""
                   
                 
                 
 				        val scn = scenario("Scenario name")
-                .repeat(1) {
+                .repeat(2) {
                         exec(
                                 http("HK new Homepage")
                                         .get("/")
@@ -140,7 +140,7 @@ class BasicExampleSimulation extends Simulation {
                         
 				
 
-        setUp(scn.inject(ramp(3 users) over (5 seconds)))
+        setUp(scn.inject(ramp(1) over (2 seconds)))
                 .protocols(httpProtocol)
 
 }
