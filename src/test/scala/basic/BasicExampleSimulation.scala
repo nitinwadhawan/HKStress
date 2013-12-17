@@ -53,9 +53,7 @@ class BasicExampleSimulation extends Simulation {
                 "Keep-Alive" -> "115",
                 "X-Requested-With" -> "XMLHttpRequest")
         
-                val addToCartJSON="""{"oldVariantId": "SKOF12-01","qty": "1","variantId": "37833"}"""
-                  
-                
+                val addToCartJSON="""{"oldVariantId": "${product_id}","qty": "${quantity}","variantId": "37833"}"""
                 
 				        val scn = scenario("Scenario name")
                 .repeat(2) {
@@ -83,7 +81,8 @@ class BasicExampleSimulation extends Simulation {
                                      .post("/sv/muscleblaze-bcaa-2000/SP-23391?navKey=VRNT-45106")
                                      .check(status.is(200))
                                      .headers(headers_2))                                     
-                                     .pause(2,3)   
+                                     .pause(2,3) 
+                                 .feed(csv("nitin.csv").random)    
                                  .exec(
                                       http("Add to Cart")
                                      .post("/api/cart/productVariant/add")
