@@ -56,7 +56,7 @@ class BasicExampleSimulation extends Simulation {
                 val addToCartJSON="""{"oldVariantId": "${product_id}","qty": "${quantity}","variantId": "37833"}"""
                 
 				        val scn = scenario("Scenario name")
-                .repeat(2) {
+                .repeat(1) {
                         exec(
                                 http("HK new Homepage")
                                         .get("/")
@@ -76,12 +76,12 @@ class BasicExampleSimulation extends Simulation {
                                      .check(regex("""Login using an existing account""").notExists)
                                      .headers(headers_2))                                     
                                      .pause(2,3)
-                                .exec(
+                                /*.exec(
                                       http("navigate to product page")
                                      .post("/sv/muscleblaze-bcaa-2000/SP-23391?navKey=VRNT-45106")
                                      .check(status.is(200))
                                      .headers(headers_2))                                     
-                                     .pause(2,3) 
+                                     .pause(2,3) */
                                  .feed(csv("nitin.csv").random)    
                                  .exec(
                                       http("Add to Cart")
@@ -115,25 +115,38 @@ class BasicExampleSimulation extends Simulation {
                                      .check(status.is(200))
                                      .headers(headers_2))                                     
                                      .pause(2,3) */   
-                                  .exec(
+                                 /* .exec(
                                       http("Select Address")
                                      .post("/core/user/SelectAddress.action") 
                                      .param("selectedAddress", "${address}")
                                      .check(status.is(200))
                                      .headers(headers_2))                                     
+                                     .pause(2,3)*/
+                                  .exec(
+                                      http("Select address action")
+                                     .post("/core/user/SelectAddress.action") 
+                                     .param("selectedAddress", "${address}")
+                                     .param("checkout", "${address}")
+                                     .check(status.is(302))
+                                     .headers(headers_2))                                     
                                      .pause(2,3)
                                   .exec(
                                       http("Order summary")
                                      .get("/core/order/OrderSummary.action")
-                                     .check(css(".right_container>form>input", "value").saveAs("orderId"))
                                      .headers(headers_2))      
                                      .pause(2,3)   
+                                   .exec(
+                                      http("getting order id")
+                                     .get("/core/order/OrderSummary.action")
+                                     .check(css(".right_container>form>input", "value").saveAs("orderId"))
+                                     .headers(headers_2))                                   
+                                     .pause(2,3)  
                                   .exec(
                                       http("Confirm Payment")
                                      .post("/core/payment/CodPaymentReceive.action")
                                      .param("""order""", "${orderId}")
                                      .param("""codContactName""", """Nitin Wadhawan""")
-                                     .param("""codContactPhone""", """9910444067""")
+                                     .param("""codContactPhone""", """9999906125""")
                                      .param("""pre""", """PLACE ORDER""")
                                      .check(status.is(302))
                                      .headers(headers_2))
@@ -146,7 +159,7 @@ class BasicExampleSimulation extends Simulation {
                         
 				
 
-        setUp(scn.inject(ramp(1) over (2 seconds)))
+        setUp(scn.inject(ramp(15) over (10 seconds)))
                 .protocols(httpProtocol)
 
 }
