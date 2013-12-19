@@ -11,7 +11,8 @@ import assertions._
 class BasicExampleSimulation extends Simulation {
 
         val httpProtocol = http
-                .baseURL("http://192.168.70.26:8787")
+                /*.baseURL("http://192.168.70.26:8787")*/
+                .baseURL("http://beta.healthkart.com")
                 .extraInfoExtractor((status:Status, session:Session, request:Request, response: Response) => {
                 List[String](request.getRawUrl())                                                   })
                 .acceptCharsetHeader("ISO-8859-1,utf-8;q=0.7,*;q=0.7")
@@ -146,7 +147,7 @@ class BasicExampleSimulation extends Simulation {
                                      .post("/core/payment/CodPaymentReceive.action")
                                      .param("""order""", "${orderId}")
                                      .param("""codContactName""", """Nitin Wadhawan""")
-                                     .param("""codContactPhone""", """9999906125""")
+                                     .param("""codContactPhone""", """9999999999""")
                                      .param("""pre""", """PLACE ORDER""")
                                      .check(status.is(302))
                                      .headers(headers_2))
@@ -159,7 +160,7 @@ class BasicExampleSimulation extends Simulation {
                         
 				
 
-        setUp(scn.inject(ramp(15) over (10 seconds)))
+        setUp(scn.inject(ramp(5) over (5 seconds)))
                 .protocols(httpProtocol)
 
 }
