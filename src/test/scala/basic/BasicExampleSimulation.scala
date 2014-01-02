@@ -12,7 +12,7 @@ class BasicExampleSimulation extends Simulation {
 
         val httpProtocol = http
                 /*.baseURL("http://192.168.70.26:8787")*/
-                .baseURL("http://beta.healthkart.com")
+                .baseURL("http://admin.healthkart.com")
                 .extraInfoExtractor((status:Status, session:Session, request:Request, response: Response) => {
                 List[String](request.getRawUrl())                                                   })
                 .acceptCharsetHeader("ISO-8859-1,utf-8;q=0.7,*;q=0.7")
@@ -22,7 +22,7 @@ class BasicExampleSimulation extends Simulation {
                .disableFollowRedirect
 
         val headers_1 = Map(
-               """Content-Type"""-> """application/json""" ,
+               """Content-Type"""-> """application/x-www-form-urlencoded""" ,
                """Accept"""-> """*/*""",
                """Accept-Encoding"""-> """gzip,deflate,sdch""",
                """Accept-Language"""-> """en-US,en;q=0.8"""
@@ -54,24 +54,24 @@ class BasicExampleSimulation extends Simulation {
                 "Keep-Alive" -> "115",
                 "X-Requested-With" -> "XMLHttpRequest")
         
-                val addToCartJSON="""{"oldVariantId": "${product_id}","qty": "${quantity}","variantId": "37833"}"""
+                val addToCartJSON="""{"productVariantBarcode":"${barcode}"}"""
                 
 				        val scn = scenario("Scenario name")
-                .repeat(1) {
-                        exec(
+                .repeat(594) {
+                       /* exec(
                                 http("HK new Homepage")
                                         .get("/")
                                         .headers(headers_1)
                                         .check(status.is(200))
                                   )                                        
-                                .pause(10)      
-                               .feed(csv("user_credentials.csv"))
-                               .exec(
+                                .pause(5)  */    
+                               //.feed(csv("user_credentials.csv"))
+                               exec(
                                       http("submit login")
                                      .post("/core/auth/Login.action")
-                                     .param("email", "${username}")
+                                     .param("email", "rahul.agarwal@healthkart.com")
                                      .param("type", """old""")                                     
-				                     .param("password", "${password}")
+				                     .param("password", "hkart@123")
                                      .param("login", """Sign In""")
                                      .check(status.is(302))
                                      .check(regex("""Login using an existing account""").notExists)
@@ -83,75 +83,18 @@ class BasicExampleSimulation extends Simulation {
                                      .check(status.is(200))
                                      .headers(headers_2))                                     
                                      .pause(2,3) */
-                                 .feed(csv("nitin.csv").random)    
+                                 .feed(csv("nitin.csv"))    
                                  .exec(
-                                      http("Add to Cart")
-                                     .post("/api/cart/productVariant/add")
-                                     .body(StringBody(addToCartJSON)).asJSON
+                                      http("Enter barcode")
+                                     .post("/admin/inventory/InventoryCheckin.action?stockTransfer=322&saveStockTransfer=")
+                                    /* .param("stockTransfer", "322")
+                                     .param("checkinInventoryAgainstStockTransfer", "322")*/
+                                     .param("productVariantBarcode", "${barcode}")
+                                     //.body(StringBody(addToCartJSON)).asJSON
                                      .check(status.is(200))
                                      .headers(headers_1))
-                                  .feed(csv("nitin.csv").random)    
-                                  .exec(
-                                      http("Add to Cart-2nd product")
-                                     .post("/api/cart/productVariant/add")
-                                     .body(StringBody(addToCartJSON)).asJSON
-                                     .check(status.is(200))
-                                     .headers(headers_1))   
-                                 .exec(
-                                      http("Cart page")
-                                     .get("/core/cart/AddToCart.action")
-                                     .check(status.is(200))
-                                     .headers(headers_1))
-                                     .pause(2,3) 
-                                  .exec(
-                                      http("Address page")
-                                     .get("/core/user/SelectAddress.action")
-                                     .check(status.is(200))
-                                     .headers(headers_1))
-                                     .pause(2,3) 
-                            /*      .exec(
-                                      http("Select Address")
-                                     .get("/core/user/SelectAddress.action")                                     
-                                     .param("selectedAddress", "${address}")
-                                     .check(status.is(200))
-                                     .headers(headers_2))                                     
-                                     .pause(2,3) */   
-                                 /* .exec(
-                                      http("Select Address")
-                                     .post("/core/user/SelectAddress.action") 
-                                     .param("selectedAddress", "${address}")
-                                     .check(status.is(200))
-                                     .headers(headers_2))                                     
-                                     .pause(2,3)*/
-                                  .exec(
-                                      http("Select address action")
-                                     .post("/core/user/SelectAddress.action") 
-                                     .param("selectedAddress", "${address}")
-                                     .param("checkout", "${address}")
-                                     .check(status.is(302))
-                                     .headers(headers_2))                                     
-                                     .pause(2,3)
-                                  .exec(
-                                      http("Order summary")
-                                     .get("/core/order/OrderSummary.action")
-                                     .headers(headers_2))      
-                                     .pause(2,3)   
-                                   .exec(
-                                      http("getting order id")
-                                     .get("/core/order/OrderSummary.action")
-                                     .check(css(".right_container>form>input", "value").saveAs("orderId"))
-                                     .headers(headers_2))                                   
-                                     .pause(2,3)  
-                                  .exec(
-                                      http("Confirm Payment")
-                                     .post("/core/payment/CodPaymentReceive.action")
-                                     .param("""order""", "${orderId}")
-                                     .param("""codContactName""", """Nitin Wadhawan""")
-                                     .param("""codContactPhone""", """9999999999""")
-                                     .param("""pre""", """PLACE ORDER""")
-                                     .check(status.is(302))
-                                     .headers(headers_2))
-                                     .pause(2,3)   
+                                     
+                                  
                                      
                         }.exec(session => {
                           println(session)
@@ -160,7 +103,7 @@ class BasicExampleSimulation extends Simulation {
                         
 				
 
-        setUp(scn.inject(ramp(5) over (5 seconds)))
+        setUp(scn.inject(ramp(1) over (1 seconds)))
                 .protocols(httpProtocol)
 
 }
